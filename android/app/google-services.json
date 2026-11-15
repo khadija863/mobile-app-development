@@ -12,7 +12,20 @@
           "package_name": "com.example.foodlink"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1023348048522-3hk73m3p0ujauc803e91ila5lvh391ff.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.foodlink",
+            "certificate_hash": "ea6be106f90aef882f7a51fbf47c898169ec616e"
+          }
+        },
+        {
+          "client_id": "1023348048522-2s3gc0lnepksd30oacfv1lkd2h8k6ed3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBal06k-GN4ngGdvjCJV8LXZoI8KZF9Ero"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1023348048522-2s3gc0lnepksd30oacfv1lkd2h8k6ed3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
