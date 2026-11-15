@@ -1,4 +1,8 @@
+
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../services/user_service.dart';
 import 'home_screen.dart';
 
 class RoleSelectionScreen extends StatefulWidget {
@@ -12,11 +16,91 @@ class RoleSelectionScreen extends StatefulWidget {
   });
 
   @override
-  State<RoleSelectionScreen> createState() => _RoleSelectionScreenState();
+  State<RoleSelectionScreen> createState() =>
+      _RoleSelectionScreenState();
 }
 
 class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
+  final UserService _userService = UserService();
+
   String? selectedRole;
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  // =====================================================
+  // SAVE USER ROLE IN FIRESTORE
+  // =====================================================
+
+  Future<void> saveUserRole() async {
+    if (selectedRole == null || isLoading) return;
+
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      setState(() {
+        errorMessage = 'Please login again to select your role.';
+      });
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      // Save role using UserService.
+      // Only pending users can select a role.
+      await _userService.selectRole(selectedRole!);
+
+      debugPrint('ROLE SELECTION SUCCESS');
+      debugPrint('USER UID: ${user.uid}');
+      debugPrint('SELECTED ROLE: $selectedRole');
+
+      if (!mounted) return;
+
+      // Navigate to Home Screen.
+      Navigator.pushAndRemoveUntil(
+  context,
+  MaterialPageRoute(
+    builder: (context) => HomeScreen(
+  userName: widget.userName,
+  userEmail: widget.userEmail,
+),
+  ),
+  (route) => false,
+);
+    } on FirebaseException catch (e) {
+      debugPrint('FIRESTORE ROLE ERROR: ${e.code}');
+      debugPrint('ERROR MESSAGE: ${e.message}');
+
+      if (!mounted) return;
+
+      setState(() {
+        errorMessage =
+            'Could not save your role. Please try again.';
+      });
+    } catch (e) {
+      debugPrint('ROLE SELECTION ERROR: $e');
+
+      if (!mounted) return;
+
+      setState(() {
+        errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  // =====================================================
+  // UI
+  // =====================================================
 
   @override
   Widget build(BuildContext context) {
@@ -49,43 +133,70 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                 ),
               ),
 
-              const SizedBox(height: 45),
+              const SizedBox(height: 35),
 
+              // DONOR
               _roleCard(
                 title: 'Donor',
                 description: 'Donate extra food to people in need',
                 icon: Icons.volunteer_activism,
-                role: 'Donor',
+                role: 'donor',
               ),
 
               const SizedBox(height: 18),
 
+              // RECEIVER
               _roleCard(
-                title: 'Receiver / Volunteer',
-                description: 'Receive food or help with food collection',
+                title: 'Receiver',
+                description: 'Request and receive available food',
+                icon: Icons.restaurant_outlined,
+                role: 'receiver',
+              ),
+
+              const SizedBox(height: 18),
+
+              // VOLUNTEER
+              _roleCard(
+                title: 'Volunteer',
+                description: 'Help collect and deliver donated food',
                 icon: Icons.people_alt_outlined,
-                role: 'Receiver / Volunteer',
+                role: 'volunteer',
               ),
 
               const Spacer(),
 
+              // ERROR MESSAGE
+              if (errorMessage != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.red.shade200,
+                    ),
+                  ),
+                  child: Text(
+                    errorMessage!,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 13,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 15),
+              ],
+
+              // CONTINUE BUTTON
               SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: selectedRole == null
+                  onPressed: selectedRole == null || isLoading
                       ? null
-                      : () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HomeScreen(
-                                userName: widget.userName,
-                                userEmail: widget.userEmail,
-                              ),
-                            ),
-                          );
-                        },
+                      : saveUserRole,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2E7D32),
                     foregroundColor: Colors.white,
@@ -94,13 +205,22 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                       borderRadius: BorderRadius.circular(15),
                     ),
                   ),
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Continue',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
 
@@ -112,20 +232,27 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     );
   }
 
+  // =====================================================
+  // ROLE CARD
+  // =====================================================
+
   Widget _roleCard({
     required String title,
     required String description,
     required IconData icon,
     required String role,
   }) {
-    bool isSelected = selectedRole == role;
+    final bool isSelected = selectedRole == role;
 
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedRole = role;
-        });
-      },
+      onTap: isLoading
+          ? null
+          : () {
+              setState(() {
+                selectedRole = role;
+                errorMessage = null;
+              });
+            },
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
@@ -168,9 +295,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 5),
-
                   Text(
                     description,
                     style: const TextStyle(

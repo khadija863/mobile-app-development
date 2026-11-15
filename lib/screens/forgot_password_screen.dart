@@ -1,5 +1,7 @@
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import 'login_screen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -12,24 +14,31 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState
     extends State<ForgotPasswordScreen> {
+  final TextEditingController emailController =
+      TextEditingController();
 
-  final emailController = TextEditingController();
+  bool isLoading = false;
 
-  bool showPassword = false;
+  // Validate and send password reset email
+  Future<void> resetPassword() async {
+    FocusScope.of(context).unfocus();
 
-  void resetPassword() async {
-    String email = emailController.text.trim();
+    final String email = emailController.text.trim();
 
     if (email.isEmpty) {
-      _showError('Please enter your email');
+      _showMessage('Please enter your email');
       return;
     }
 
     if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
         .hasMatch(email)) {
-      _showError('Please enter a valid email');
+      _showMessage('Please enter a valid email');
       return;
     }
+
+    setState(() {
+      isLoading = true;
+    });
 
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(
@@ -41,33 +50,56 @@ class _ForgotPasswordScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Password reset link sent to your email',
+            'If an account exists with this email, '
+            'a password reset link will be sent.',
           ),
+          backgroundColor: Colors.green,
         ),
       );
 
-      Future.delayed(const Duration(seconds: 2), () {
-        if (!mounted) return;
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => LoginScreen(
-              email: email,
-            ),
-          ),
-        );
-      });
+      // Return to Login screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginScreen(email: email),
+        ),
+      );
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        _showError('No account found with this email');
+      debugPrint('PASSWORD RESET ERROR: ${e.code}');
+      debugPrint('ERROR MESSAGE: ${e.message}');
+
+      if (!mounted) return;
+
+      if (e.code == 'invalid-email') {
+        _showMessage('Please enter a valid email');
+      } else if (e.code == 'network-request-failed') {
+        _showMessage('Please check your internet connection.');
       } else {
-        _showError('Something went wrong. Please try again.');
+        _showMessage(
+          'Something went wrong. Please try again.',
+        );
+      }
+    } catch (e) {
+      debugPrint('PASSWORD RESET ERROR: $e');
+
+      if (!mounted) return;
+
+      _showMessage(
+        'Something went wrong. Please try again.',
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
       }
     }
   }
 
-  void _showError(String message) {
+  // Show message
+  void _showMessage(String message) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -96,7 +128,6 @@ class _ForgotPasswordScreenState
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(25),
-
           child: Column(
             children: [
               const SizedBox(height: 30),
@@ -136,22 +167,22 @@ class _ForgotPasswordScreenState
 
               const SizedBox(height: 35),
 
-              // Email
               TextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
-                obscureText: false,
+                textInputAction: TextInputAction.done,
+                enabled: !isLoading,
+                onSubmitted: (_) {
+                  if (!isLoading) resetPassword();
+                },
                 decoration: InputDecoration(
                   hintText: 'Email',
-
                   prefixIcon: const Icon(
                     Icons.email_outlined,
                     color: Color(0xFF2E7D32),
                   ),
-
                   filled: true,
                   fillColor: Colors.white,
-
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
                     borderSide: BorderSide.none,
@@ -164,26 +195,31 @@ class _ForgotPasswordScreenState
               SizedBox(
                 width: double.infinity,
                 height: 52,
-
                 child: ElevatedButton(
-                  onPressed: resetPassword,
-
+                  onPressed: isLoading ? null : resetPassword,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2E7D32),
                     foregroundColor: Colors.white,
-
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
                   ),
-
-                  child: const Text(
-                    'Send Reset Link',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Send Reset Link',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
 
