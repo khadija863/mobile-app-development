@@ -101,7 +101,7 @@ Explore the user interface of FoodLink and its role-based features.
 
 **Receiver Dashboard**
 
-![Receiver Dashboard](screenshots/Receiver%20dashboard.jpeg)
+![Receiver Dashboard](screenshots/Reciver%20dashboard.jpeg)
 
 **My Requests Screen**
 
