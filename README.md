@@ -48,12 +48,13 @@ The application uses Firebase for authentication and real-time data management.
 
 ## 📱 Application Screens & Modules
 
-- Splash Screen
-- Welcome Screen
+- Splash & Welcome Screen
 - Login & Registration
 - Role Selection
-- Home Dashboard
 - Admin Dashboard
+- Donor Dashboard
+- Receiver Dashboard
+- Volunteer Dashboard
 - Add Food Donation
 - Browse Food
 - My Donations
@@ -66,6 +67,69 @@ The application uses Firebase for authentication and real-time data management.
 - Notifications
 - User Profile
 - Edit Profile
+- Delivery Task
+
+## 📸 Application Screenshots
+
+Explore the user interface of FoodLink and its role-based features.
+
+### 🏠 Welcome & Role Selection
+
+**Welcome Screen**
+
+![Welcome Screen](screenshots/welcome%20screen.jpeg)
+
+**Role Selection**
+
+![Role Selection](screenshots/role%20selection.jpeg)
+
+### 👨‍💼 Admin Dashboard
+
+![Admin Dashboard](screenshots/admin%20dashboard.jpeg)
+
+### 🍱 Donor Dashboard & Food Donation
+
+**Donor Dashboard**
+
+![Donor Dashboard](screenshots/donor%20dashboard.jpeg)
+
+**Food Donation Screen**
+
+![Food Donation Screen](screenshots/food%20donation%20screen.jpeg)
+
+### 🤝 Receiver Dashboard & Requests
+
+**Receiver Dashboard**
+
+![Receiver Dashboard](screenshots/Receiver%20dashboard.jpeg)
+
+**My Requests Screen**
+
+![Receiver My Requests](screenshots/Reciver%20My%20request%20screen.jpeg)
+
+### 🚚 Volunteer Dashboard & Delivery
+
+**Volunteer Dashboard**
+
+![Volunteer Dashboard](screenshots/volunteer%20dashboard.jpeg)
+
+**Delivery Task Screen**
+
+![Delivery Task](screenshots/delivery%20task%20screen.jpeg)
+
+### 🔔 Notifications
+
+![Notification Screen](screenshots/Notification%20screen.jpeg)
+
+### 👤 User Profile
+
+**Profile Screen**
+
+![Profile Screen](screenshots/profile%20screen.jpeg)
+
+**Edit Profile Screen**
+
+![Edit Profile Screen](screenshots/Edit%20profile%20screen.jpeg)
 
 ## 📂 Project Structure
 
@@ -85,6 +149,7 @@ foodlink/
 ├── web/
 ├── windows/
 │
+├── screenshots/
 ├── pubspec.yaml
 ├── pubspec.lock
 └── README.md
@@ -177,4 +242,5 @@ This project was developed for academic and educational purposes.
 
 ---
 
-**FoodLink – Share Food, Spread Kindness, Reduce Waste. ❤️**
+### ❤️ FoodLink
+**Share Food, Spread Kindness, Reduce Waste.**
